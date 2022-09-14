@@ -1,0 +1,468 @@
+#include <iostream> 
+#include <string>
+#include <iomanip>
+#include <fstream>
+
+
+
+using namespace std;
+class bankaccount{
+    
+public: 
+    char banktype; //for S and C savings 
+    char name[99]; 
+    int accountnumber;
+    int deposit; 
+
+public:
+    void create_account();
+    void showmy_account() const; 
+    void deposit_formula(int);
+    void withdrawformula(int);
+    void transferformula(int,int);
+    int return_accountnumber() const;
+    int return_deposit() const;
+    char return_banktype() const; 
+    void complete_table() const; 
+    void edit();
+};
+
+void bankaccount :: create_account(){
+    cout << "\n ==============================";
+    cout << "\n     CREATE ACCOUNT FORM     "; 
+    cout << "\n =============================" ; 
+    cout << "\n ENTER TYPE OF BANK ACCOUNT:  "; 
+    cout << "\n S = SAVINGS/ C = CURRENT    "; 
+    cin >> banktype;
+    cout << "\nENTER ACCOUNT NUMBER : "; 
+    cin >> accountnumber;
+    cout << "\nENTER ACCOUNT HOLDER NAME : "; 
+    cin.ignore(); 
+    cin.getline(name,99);
+    cout << "\n ENTER THE INITIAL AMOUNT(min.250 saving, 3000 current) : "; 
+    cin >> deposit;
+    cout << " " << endl;
+    cout << "\n ACCOUNT SUCCESSFULLY CREATED! " ;  
+}
+
+void bankaccount:: showmy_account()const {
+    cout << "\nACCOUNT NUMBER: " << accountnumber;
+    cout << "\nBANK-TYPE: " << banktype;
+    cout << "\nACCOUNT NAME:  " << name;
+    cout << "\nBALANCE: " << deposit; 
+}
+
+void opening(){
+    
+    cout << "============================="<< endl;
+    cout << "\nWELCOME TO ANYBANK ATM" << endl;
+    cout << "=============================" << endl;
+    cout << "  " << endl;
+    cout << " USING C++ " << endl;
+    cout << "By: Gianne Nicole L. Juson" << endl;
+    cout << "==============================" << endl;
+    cout << " " << endl;
+    cin.get();
+   cout << endl;
+   
+}
+
+
+void create_account_toFiles(){
+    bankaccount g; 
+    ofstream myFile;
+    myFile.open("ANYBANKrecords.txt", ios::binary | ios::app);
+        g.create_account();
+        myFile.write(reinterpret_cast<char *> (&g), sizeof(bankaccount)); // converts a pointer to any unrelated data type
+        myFile.close();
+}
+
+
+int bankaccount::return_accountnumber() const{
+    return accountnumber;
+} //To assure that account number is constant...
+
+int bankaccount::return_deposit() const{
+    cout <<"Deposit value: " << deposit; 
+    return deposit; 
+}
+
+void bankaccount::deposit_formula(int Amount) {
+    deposit += Amount;
+} //deposit
+
+char bankaccount ::return_banktype() const {
+    return banktype;
+}
+
+void depowith_account(int number0, int zero) {
+    int amount; 
+    bankaccount a; 
+    bool meet = false;
+    fstream myFile;
+    myFile.open("ANYBANKrecords.txt", ios::binary | ios::in | ios::out); 
+    if(!myFile){
+        cout << "\n ERROR: File could not be identified or reopened." << endl;
+        cout << "\n Press ENTER key to continue...."; 
+        return; 
+        
+        //myFile.eof = meansyou have to return true meaning it returned a non-zero value 
+        
+    }while(!myFile.eof()&&meet==false) {
+        myFile.read(reinterpret_cast<char *>(&a), sizeof(bankaccount));
+        if(a.return_accountnumber()==number0){
+            system("cls");
+            if(zero == 0){
+                cout << "\n ===============================";
+                cout << "\n     Deposit Form ";
+                cout << "\n ==============================="; 
+                
+            }else if(zero == 1){
+                cout << "\n ===============================";
+                cout << "\n     Withdraw Form " ; 
+                cout << "\n ===============================";
+            }
+            a.showmy_account(); 
+            //deposit option
+            if(zero == 0) { 
+                cout << "\n     Amount to deposit: "; 
+                cin >> amount; 
+                a.deposit_formula(amount);
+        } //withdraw option 
+            if(zero == 1){
+                cout << "\n     Amount to withdraw: ";
+                cin >> amount; 
+                int balance = a.return_deposit()-amount;
+                cin >> amount; 
+                if((balance < 250 && a.return_banktype() == 'S') || (balance < 3000 && a.return_banktype() == 'C')){
+                    cout << "\n     Not Enough Balance......."; 
+                }else{
+                    a.withdrawformula(amount);
+                }
+            }
+            int position =(-1)*static_cast<int>(sizeof(a));
+            myFile.seekp(position, ios::cur); // finding a position when the data is updated in the file
+            myFile.write(reinterpret_cast<char *>(&a), sizeof(bankaccount)); //data is written in the file
+            cout << "\n     Balance Updated....";
+            meet = true; 
+        
+        }
+    }//while (do this as long as..)
+    myFile.close();
+    if(meet == false){
+        cout << "\n Failed: Incorrect Information...";  
+    }
+}
+void bankaccount::withdrawformula(int Amount) {
+    deposit -= Amount;
+} //withdraw
+
+void bankaccount::edit() {
+    cout << "\n CHANGE ACCOUNT NUMBER: " << accountnumber;
+    cout << "\n CHANGE ACCOUNT NAME: " ;
+    cin.ignore();
+    cin.getline(name,99);
+    cout << "\n CHANGE ACCOUNT TYPE(S- Savings/C- Current): " ;
+    cin >> banktype;
+    cout << "\n CHANGE ACCOUNT BALANCE: "; cin >> deposit; 
+    
+    
+}//edit/change account
+
+
+
+void bankaccount::transferformula(int receiver, int amount){
+    bankaccount a;
+    bool meet = false;
+    fstream myFile;
+    myFile.open("ANYBANKrecords.txt", ios::binary | ios::in | ios::out); 
+    if(!myFile){
+        cout << "\n Error: File could not be identified or reopened." << endl;
+        cout << "\n Press ENTER key to continue...";
+        return;
+        
+    }while(!myFile.eof()&&meet==false){
+        myFile.read(reinterpret_cast<char *>(&a), sizeof(bankaccount));
+        if(a.return_accountnumber()==receiver){
+            if(receiver == receiver){
+                int balance = a.return_deposit()+amount;
+                //error minimum balance
+                if((balance < 250 && a.return_banktype()=='S') || (balance < 3000 && a.return_banktype() == 'C')){
+                    cout << "\n     Not Enough Balance... "; 
+                }else {
+                    a.deposit_formula(amount);
+                }
+            }
+            int position = (-1)*static_cast<int>(sizeof(a));
+            myFile.seekp(position, ios::cur); // to current position
+            myFile.write(reinterpret_cast<char *>(&a), sizeof(bankaccount));
+            cout << "\n     Balance Updated..."; 
+            meet = true; 
+        }
+        
+    }
+        myFile.close();
+        if(meet == false){
+            cout << "\n     Failed: Incorrect Information..."; 
+        }
+    
+    
+}
+
+void bankaccount::complete_table() const{
+    cout << accountnumber << setw(10)<< " " << name << setw(10) << " " << banktype << setw(8) << " " << deposit << endl;
+    
+}
+
+void balanceInquiry(int number){
+    bankaccount g; 
+    bool meet = false;
+    ifstream myFile; 
+    myFile.open("ANYBANKrecords.txt", ios::binary | ios::in);
+    if(!myFile){
+        cout << "\n ERROR: FILE COULD NOT BE RETRIEVED!" << endl;
+        cout << "\n PRESS 'ENTER' KEY TO CONTINUE...."  << endl;
+        return;
+    }
+    
+    while(myFile.read(reinterpret_cast<char *> (&g), sizeof(bankaccount))){
+        if(g.return_accountnumber()==number){
+            system("cls");
+            cout << "\n ===================================";
+            cout << "\n      BALANCE INQUIRY FORM ";
+            cout << "\n ===================================";
+            g.showmy_account();
+            meet = true; 
+        }
+    }
+    
+    myFile.close();
+    if(meet==false) {
+    cout << "\n ERROR: ACCOUNT DOESN'T MATCH..." ;
+}
+    return;
+}// void balance inquiry
+
+void transfer_money(int number0){
+    int amount, receiver;
+    bankaccount a; 
+    bool meet = false;
+    fstream myFile; 
+    myFile.open("ANYBANKrecords.txt", ios::binary | ios::in | ios:: out);
+    if(!myFile){
+        cout << "\n     ERROR: File could not be identified or reopened..."; 
+        cout << "\n     Press ENTER key to continue.... "; 
+        return; 
+    }while(!myFile.eof()&& meet==false) { // while the myFile is NOT returning a non-zero file meaning WHILE its returning zero
+        myFile.read(reinterpret_cast<char *>(&a), sizeof(bankaccount));
+        
+        if(a.return_accountnumber()==number0) { 
+            
+            a.showmy_account();
+            
+            if(number0==number0){
+                cout <<"\n   Account number of the receiver: "; 
+                cin >> receiver;
+                cout << "\n  Amount to transfer:    ";
+                cin >> amount;
+                a.transferformula(receiver,amount);
+                int balance = a.return_deposit() - amount;
+                cout << "\nThe balance is: " << balance;
+                
+                //error minimum balance
+                //The minimum for savings account is 250 and the minimum for credit account is 3000
+                    if((balance<250 && a.return_banktype() == 'S') || (balance < 3000 && a.return_banktype() == 'C')){
+                    cout << "\n     Not Enough Balance...";
+                    }   else{
+                        a.withdrawformula(amount);
+                    }
+            }
+            int position = (-1)* static_cast<int>(sizeof(a));
+            myFile.seekp(position,ios ::cur);       //to current position 
+            myFile.write(reinterpret_cast<char *>(&a), sizeof(bankaccount));
+            cout << "\n     Balance Updated..."; 
+            meet = true; 
+        }
+    }// while
+            myFile.close();
+            if(meet==false){
+            cout << "\n     Failed: Incorrect Information " << endl;
+    }
+}
+
+
+void reportmy_completetable(){
+    bankaccount a;
+    ifstream myFile;
+    myFile.open("ANYBANKrecords.txt", ios:: binary);
+    if(!myFile){
+        cout << "\n     Error: File could not be identified or reopened. "; 
+        return;
+        
+    }
+    cout << "\n     Account Holder Masterlist" << endl;
+    cout << "\nAccount No.      Name          Type          Balance\n"; 
+    while(myFile.read(reinterpret_cast<char *>(&a), sizeof(bankaccount)))
+    {
+        a.complete_table();
+        
+    }myFile.close(); 
+}   // masterlist 
+
+void editaccount(int number){
+    bankaccount a; 
+    bool meet = false; 
+    fstream myFile;
+    myFile.open("ANYBANKrecords.txt", ios::binary | ios::out | ios::in);
+    if(!myFile){
+        cout << "\n     Error: File could not be identified or reopened. "; 
+    }
+}
+
+void deleteaccount(int number){
+    bankaccount a; 
+    ifstream myFile;
+    ofstream omyFile;
+    myFile.open("ANYBANKrecords.txt", ios::binary);
+    if(!myFile){
+        cout << "\n     Error: File could not be identified or reopened. "; 
+        return;
+    }
+    omyFile.open("EXANYBANKrecords.txt", ios::binary); 
+    myFile.seekg(0, ios::beg); 
+    
+    while(myFile.read(reinterpret_cast<char *>(&a), sizeof(bankaccount))){
+        if(a.return_accountnumber()!=number) {
+            omyFile.write(reinterpret_cast<char *>(&a), sizeof(bankaccount));
+            
+        }//if
+        
+    }//while
+    myFile.close();
+    omyFile.close();
+    remove("ANYBANKrecords.txt");
+    rename("EXANYBANKrecords.txt", "ANYBANKrecords.txt");
+    cout <<"\n  Record List Updated..."; 
+}
+//delete account
+
+int menu(){
+    int select{}; 
+    cout << "\n==============================" << endl;
+    cout << "           ANY BANK ATM        " << endl;
+    cout << "==============================" << endl;
+    cout << " 1. Create New Account        \n" ;
+    cout << " 2. Deposit Money             \n" ;
+    cout << " 3. Withdraw Money            \n" ;
+    cout << " 4. Balance Inquiry           \n" ;
+    cout << " 5. Transfer Money To Other Account    \n" ;
+    cout << " 6. View Masterlist of Bank Accounts   \n" ;
+    cout << " 7. Edit/Change An Account     \n" ;
+    cout << " 8. Delete An Account      \n" ;
+    cout << " 0. Exit     \n" ;
+    cout << " Press key (0-8): "; 
+    cin >> select; 
+    
+    return select;
+                                            
+    
+    }
+
+int main() {
+    int number;
+    int fromMenu; 
+    
+    
+    opening();
+    
+    system("cls");
+    
+    do{
+        fromMenu = menu();
+        system("cls");
+      switch(fromMenu){
+          case 1: 
+          //function to create new account
+          create_account_toFiles();
+          break;
+          
+          
+          break;
+          
+          case 2:
+          
+          cout << "\n =================================";
+          cout << "\n           DEPOSIT FORM "; 
+          cout << "\n =================================";
+          cout << "\n       Enter Account No. : ";
+          cin >> number;
+          depowith_account(number,0);
+            //deposit money 
+          break; 
+          
+          case 3: 
+          //withdraw money
+          cout << "\n ================================";
+          cout << "\n           WITHDRAW FORM        ";
+          cout << "\n ================================";
+          cout << "\n   Enter account no. : ";
+          cin >> number;
+          depowith_account(number,1);
+          break;
+          
+          case 4: 
+          //balance inquiry
+          cout << "\n ================================";
+          cout << "\n          BALANCE INQUIRY FORM       ";
+          cout << "\n ================================";
+          cout << "\n   Enter account no. : ";
+          cin >> number;
+          balanceInquiry(number);
+          break;
+         
+          
+          case 5: 
+          //Transfer Money to other account 
+          cout << "\n ================================";
+          cout << "\n          TRANSFER MONEY OPTION ";
+          cout << "\n ================================";
+          cout << "\n   Enter account no. : ";
+          cin >> number;
+          transfer_money(number);
+          break; 
+          
+          case 6:
+          //Account Holder Masterlist
+          reportmy_completetable();
+          break; 
+          
+          case 7: 
+          //Edit/change an account 
+        
+          cout << "\n ================================";
+          cout << "\n          EDIT/CHANGE ACCOUNT       ";
+          cout << "\n ================================";
+          cout << "\n   Enter account no. : ";
+          cin >> number;
+          editaccount(number);
+          break; 
+          
+          case 8: 
+          //Delete an account
+          cout << "\n ================================";
+          cout << "\n          DELETE ACCOUNT       ";
+          cout << "\n ================================";
+          cout << "\n   Enter account no. : ";
+          cin >> number;
+          deleteaccount(number);
+          break; 
+          
+          
+      }  
+        
+        
+    } while (fromMenu != 0);
+    
+    return 0;
+    
+    }
